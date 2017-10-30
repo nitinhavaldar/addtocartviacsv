@@ -1,0 +1,157 @@
+<?php
+// @Evry India Pvt Ltd
+/** @var \Evry\Helloworld\Block\Helloworld $block */
+?>
+
+<?php
+
+$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+$urlInterface = $objectManager->get('\Magento\Framework\UrlInterface');
+$customerSession = $block->getCustomerSession();
+
+if(!$customerSession->isLoggedIn()) :
+    $customerSession->setAfterAuthUrl($urlInterface->getCurrentUrl());
+    $customerSession->authenticate(); ?>
+
+<?php else : ?>
+<div class="upload-csv" style="min-height:120px">
+    <form action="<?php echo $block->getFormAction();?>" method="post" enctype="multipart/form-data" name="uploadForm" id="uploadForm">
+        Select file to upload:
+        <input type="file" name="fileToUpload" id="fileToUpload">
+        <input type="submit" value="Upload File" name="submit" id="submit">
+    </form>
+</div>
+<?php if ($block->getAllCsvFiles() && count($block->getAllCsvFiles())): ?>
+           <div class="history"><p> Your previous uploaded files </p> </div>
+            <div class="table-wrapper reviews">
+                <table class="data table table-reviews" id="my-request-table">
+                    <caption class="table-caption"><?php /* @escapeNotVerified */ echo __('Uploaded Files') ?></caption>
+                    <thead>
+                        <tr>
+                            <th scope="col" class="col date"><?php /* @escapeNotVerified */ echo __('Uploaded On') ?></th>
+                            <th scope="col" class="col item"><?php /* @escapeNotVerified */ echo __('Your Email') ?></th>
+                            <th scope="col" class="col summary"><?php /* @escapeNotVerified */ echo __('File Name') ?></th>
+                            <th scope="col" class="col description"><?php /* @escapeNotVerified */ echo __('File Size (in KB)') ?></th>
+                            <th scope="col" class="col description"><?php /* @escapeNotVerified */ echo __('Action') ?></th>
+                            <th scope="col" class="col actions">&nbsp;</th>
+                        </tr>
+                    </thead>
+
+                     <tbody>
+                        <?php foreach ($block->getAllCsvFiles() as $_file): ?>
+                        
+                        <tr>
+                            <td data-th="<?php echo $block->escapeHtml(__('Uploaded on')) ?>" class="col date"><?php /* @escapeNotVerified */ echo $_file->getUploadedOn(); ?></td>
+                            <td data-th="<?php echo $block->escapeHtml(__('Your Email')) ?>" class="col date"><?php /* @escapeNotVerified */ echo $_file->getCustomerEmail(); ?></td>
+                            <td data-th="<?php echo $block->escapeHtml(__('File Name')) ?>" class="col item"><?php echo $_file->getFileName(); ?>
+                            </td>
+                                
+                            <td data-th="<?php echo $block->escapeHtml(__('File Size')) ?>" class="col item">
+                            <?php echo $_file->getFileSize(); ?></td>
+                            <td data-th="<?php echo $block->escapeHtml(__('Action')) ?>" class="col item">
+                            <button type="button" name="repeat" class="repeat-btn" id="repeat_<?php echo $_file->getFileName();?>" title="Repeat Transaction">Repeat Transaction</button>
+                            <button type="button" name="btn" class="btn" id="myid_<?php echo $_file->getEntityId();?>" title="Delete">X</button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    
+                </table>
+            </div>
+            <?php if ($block->getToolbarHtml()): ?>
+                  <div class="toolbar products-reviews-toolbar bottom">
+                    <?php echo $block->getToolbarHtml() ?>
+                  </div>
+            <?php endif; ?>
+    <?php else: ?>
+        <div class="message info empty"><span><?php /* @escapeNotVerified */ echo __("You don't have any files to see now.") ?></span></div>
+
+    <?php endif; ?>
+
+        <div class="actions-toolbar">
+            <div class="secondary">
+                <a class="action back" href="<?php echo $block->escapeUrl($block->getBackUrl()) ?>">
+                    <span><?php /* @escapeNotVerified */ echo __('Back') ?></span>
+                </a>
+            </div>
+        </div>
+        <div class="message info empty" style="display: none"><span><?php /* @escapeNotVerified */ echo __("You don't have any files to see now.") ?></span></div>
+<?php endif; ?>
+
+<script type="text/javascript">
+    require([
+    "jquery",
+    "jquery/ui"
+], function($n){
+//<![CDATA[
+    $n = jQuery.noConflict();
+    $n(document).ready(function() 
+    {
+        $n(".repeat-btn").on('click',function(e)
+        {
+            if(confirm('Are you sure you want to Repeat this Transaction ?')) {
+                var $document_file = this.id;
+                var $file_name = $document_file.split("_");
+                $n.ajax({
+                            showLoader: true,
+                            url: '<?php echo $block->getRepeatUrl()?>',
+                            data: {filename: $file_name[1]},
+                            type: 'POST',
+                            datatype:'json'
+                    }).done(function(res) { 
+                        var $response = res['responseJson'];
+                        var $message = res['message'];
+                        if($response=='success') {
+                            document.location.href='<?php echo $block->getCartUrl();?>';
+                        }
+                        else {
+                            console.log($message);
+                        }
+                            
+                    });
+                }
+         });
+
+        $n(".btn").on('click',function(e)
+        {
+            if(confirm('Are you sure you want to delete this file ?')) {
+                    var $get_total_no = $n('.toolbar-number').text();
+                    var $a = $get_total_no.replace(/\s/g, '');
+                    var $actual_res = $a.split("");
+                    var $ele = $n(this).parent().parent();
+                    var $document_id = this.id;
+                    var $res_id = $document_id.split("_");
+                    var $rowCount = $n('#my-request-table tbody tr').length;
+                     $n.ajax({
+                            showLoader: true,
+                            url: '<?php echo $block->getDeleteUrl()?>',
+                            data: {id: $res_id[1]},
+                            type: 'POST',
+                            datatype:'json'
+                    }).done(function(res) { 
+                            var $response = res['responseJson'];
+                            if($response=='success') {
+                                $ele.fadeOut().remove();
+                                $res = parseInt($actual_res[0]) - 1;
+                                $n('.toolbar-number').text($res+' Item(s)');
+                                if($rowCount==1) {
+                                    $n('.table-wrapper, .actions-toolbar, .products-reviews-toolbar,.history').hide();
+                                    $n('.message').show();
+                                    
+                                }
+
+                            }
+                            else {
+                                console.log(response['message']);
+                            }
+                    });
+            }
+
+        });
+    });
+//]]>
+});
+</script>
+
+
+

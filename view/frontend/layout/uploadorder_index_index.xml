@@ -1,0 +1,12 @@
+<!-- @Evry India Pvt Ltd -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="2columns-left" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="customer_account"/>
+    <head>
+    	<title>Add to Cart via CSV</title>
+	</head> 
+    <body>
+       <referenceContainer name="content">
+             <block class="Evry\Uploadorder\Block\Uploadorder" name="uploadorder" template="uploadorder.phtml" />
+		</referenceContainer>
+    </body>
+</page>
