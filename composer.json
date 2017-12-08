@@ -1,5 +1,5 @@
 {
-    "name": "evry/addtocartviacsv",
+    "name": "evry/uploadorder",
     "description": "Add to Cart via CSV is a B2B extension which helps the Wholesaler to add the products to cart from CSV file without having to go through an existing complex process",
     "type": "magento2-module",
     "version": "1.0.0",
@@ -10,7 +10,7 @@
     "autoload": {
         "files": [ "registration.php" ],
         "psr-4": {
-            "Evry\\Addtocartviacsv\\": ""
+            "Evry\\Uploadorder\\": ""
         }
     }
 }
